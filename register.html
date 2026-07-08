@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mental Health Welfare – Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght=400;600;700;800;900&family=Inter:wght=400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple-deep: #3b1fa3; --purple-mid: #7c3aed; --purple-soft: #a78bfa;
+      --purple-light: #ede9fe; --pink-accent: #ec4899; --bg-left: #c4b5fd;
+      --card-bg: #ffffff; --text-dark: #1e1b4b; --text-muted: #6b7280;
+      --input-bg: #f5f3ff; --border: #e0d9f7;
+    }
+    body {
+      font-family: 'Inter', sans-serif; min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #d8d0f8 0%, #c4b5fd 30%, #b8a7f0 55%, #d4a5c9 75%, #e8b4b8 100%);
+      overflow: hidden; position: relative;
+    }
+    .bg-scene { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .page { position: relative; z-index: 1; width: 100%; max-width: 1100px; min-height: 100vh; display: flex; align-items: center; padding: 40px 24px; }
+    .left { flex: 1; padding-right: 60px; animation: fadeSlideLeft 0.8s ease both; }
+    @keyframes fadeSlideLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 60px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: var(--text-dark); }
+    .headline { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.1; color: var(--text-dark); margin-bottom: 12px; }
+    .headline .accent { color: var(--purple-mid); }
+    .underline-bar { width: 48px; height: 4px; background: var(--purple-mid); border-radius: 2px; margin-bottom: 24px; }
+    .tagline { font-size: 15px; color: #4c4a6e; line-height: 1.7; max-width: 300px; margin-bottom: 48px; }
+    .card { width: 420px; flex-shrink: 0; background: var(--card-bg); border-radius: 28px; padding: 40px; box-shadow: 0 24px 80px rgba(100, 60, 200, 0.18), 0 4px 20px rgba(0,0,0,0.06); animation: fadeSlideRight 0.8s ease both; }
+    @keyframes fadeSlideRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    .card-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text-dark); text-align: center; margin-bottom: 6px; }
+    .card-sub { font-size: 13.5px; color: var(--text-muted); text-align: center; margin-bottom: 24px; }
+    .input-group { position: relative; margin-bottom: 16px; }
+    .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #a0aec0; display: flex; align-items: center; }
+    .input-icon svg { width: 18px; height: 18px; }
+    input[type="email"], input[type="password"], input[type="text"] { width: 100%; padding: 14px 44px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; outline: none; transition: all 0.25s; }
+    input:focus { border-color: var(--purple-soft); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1); }
+    .btn-login { width: 100%; padding: 15px; background: linear-gradient(90deg, #7c3aed 0%, #c026d3 100%); color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px; border: none; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35); margin-top: 10px; margin-bottom: 20px; transition: all 0.2s; }
+    .btn-login:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 12px 32px rgba(124, 58, 237, 0.45); }
+    .register-row { text-align: center; font-size: 13.5px; color: var(--text-muted); }
+    .register-row a { color: var(--purple-mid); font-weight: 700; text-decoration: none; font-family: 'Nunito', sans-serif; }
+    .register-row a:hover { text-decoration: underline; }
+    @media (max-width: 800px) {
+      .page { flex-direction: column; align-items: center; padding: 32px 16px; }
+      .left { padding-right: 0; text-align: center; margin-bottom: 32px; }
+      .tagline { margin: 0 auto 20px; } .underline-bar { margin: 0 auto 24px; }
+      .card { width: 100%; max-width: 420px; }
+    }
+  </style>
+</head>
+<body>
+
+  <svg class="bg-scene" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#f0abfc" stop-opacity="0.4"/></linearGradient>
+      <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.45"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0.6"/></linearGradient>
+    </defs>
+    <polygon points="0,560 240,380 430,350 650,370 870,340 1200,400 1200,700 0,700" fill="url(#mtnFar)"/>
+  </svg>
+
+  <div class="page">
+    <div class="left">
+      <div class="logo"><span class="logo-icon">🧠</span>Mental Health Welfare</div>
+      <h1 class="headline">Join Our<br>Community<br><span class="accent">Today</span></h1>
+      <div class="underline-bar"></div>
+      <p class="tagline">Start your journey towards emotional well-being and get personalized insights.</p>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Create Account</h2>
+      <p class="card-sub">Sign up to start your mental health journey</p>
+
+      <div class="input-group">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <input type="text" id="nameInput" placeholder="Enter your full name" />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 7l10 7 10-7"/>
+          </svg>
+        </span>
+        <input type="email" id="emailInput" placeholder="Enter your email" />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 0 8 0v4"/>
+          </svg>
+        </span>
+        <input type="password" id="pwInput" placeholder="Create a password" />
+      </div>
+
+      <button class="btn-login" onclick="handleRegister()">
+        Register
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <p class="register-row">
+        Already have an account? <a href="index.html">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function handleRegister() {
+      const name = document.getElementById('nameInput').value;
+      const email = document.getElementById('emailInput').value;
+      const pw = document.getElementById('pwInput').value;
+      const btn = document.querySelector('.btn-login');
+
+      if (!name || !email || !pw) {
+        btn.style.background = 'linear-gradient(90deg,#ef4444,#f97316)';
+        btn.textContent = 'Please fill in all fields';
+        setTimeout(() => {
+          btn.style.background = 'linear-gradient(90deg,#7c3aed,#c026d3)';
+          btn.innerHTML = 'Register <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        }, 2000);
+        return;
+      }
+
+      btn.innerHTML = '✓ Creating Account...';
+      btn.style.opacity = '0.8';
+
+      setTimeout(() => {
+        // অ্যাকাউন্ট তৈরি সফল হলে সরাসরি ড্যাশবোর্ডে নিয়ে যাবে
+        window.location.href = 'dashboard.html';
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

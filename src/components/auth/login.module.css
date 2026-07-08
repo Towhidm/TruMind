@@ -1,0 +1,307 @@
+.page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 40px 24px;
+  gap: 0;
+}
+
+.left {
+  flex: 1;
+  padding-right: 60px;
+  animation: fadeSlideLeft 0.8s ease both;
+}
+
+@keyframes fadeSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 60px;
+  font-family: var(--font-nunito), sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #1e1b4b;
+}
+
+.logoIcon {
+  font-size: 22px;
+}
+
+.headline {
+  font-family: var(--font-nunito), sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  line-height: 1.1;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+}
+
+.accent {
+  color: #7c3aed;
+}
+
+.underlineBar {
+  width: 48px;
+  height: 4px;
+  background: #7c3aed;
+  border-radius: 2px;
+  margin-bottom: 24px;
+}
+
+.tagline {
+  font-size: 15px;
+  color: #4c4a6e;
+  line-height: 1.7;
+  max-width: 300px;
+  margin-bottom: 48px;
+}
+
+.birds {
+  margin-bottom: 32px;
+  opacity: 0.6;
+  font-size: 18px;
+  letter-spacing: 4px;
+  animation: birdFly 3s ease-in-out infinite;
+}
+
+@keyframes birdFly {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+.privacyCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px 20px;
+  max-width: 310px;
+}
+
+.privacyIcon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.privacyText strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 2px;
+}
+
+.privacyText span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.card {
+  width: 420px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 44px 40px 40px;
+  box-shadow:
+    0 24px 80px rgba(100, 60, 200, 0.18),
+    0 4px 20px rgba(0, 0, 0, 0.06);
+  animation: fadeSlideRight 0.8s ease both;
+}
+
+@keyframes fadeSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.cardIconWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.cardIcon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(145deg, #f0ebff, #e8defe);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 10px rgba(167, 139, 250, 0.12),
+    0 0 0 20px rgba(167, 139, 250, 0.06);
+}
+
+.cardTitle {
+  font-family: var(--font-nunito), sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: #1e1b4b;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.cardSub {
+  font-size: 13.5px;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: floatDot 4s ease-in-out infinite;
+}
+
+.dot:nth-child(1) {
+  width: 8px;
+  height: 8px;
+  top: 18%;
+  right: 42%;
+  animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+  width: 5px;
+  height: 5px;
+  top: 12%;
+  right: 38%;
+  animation-delay: 0.8s;
+}
+
+.dot:nth-child(3) {
+  width: 6px;
+  height: 6px;
+  top: 22%;
+  right: 10%;
+  animation-delay: 1.5s;
+}
+
+.dot:nth-child(4) {
+  width: 9px;
+  height: 9px;
+  top: 8%;
+  right: 8%;
+  animation-delay: 0.4s;
+}
+
+@keyframes floatDot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 32px;
+    min-height: auto;
+  }
+
+  .left {
+    padding-right: 0;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .logo {
+    margin-bottom: 32px;
+    justify-content: center;
+  }
+
+  .tagline,
+  .privacyCard {
+    margin: 0 auto 20px;
+  }
+
+  .underlineBar {
+    margin: 0 auto 24px;
+  }
+
+  .birds {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 24px 28px;
+    border-radius: 24px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page {
+    padding: 32px 40px;
+    gap: 32px;
+  }
+
+  .left {
+    padding-right: 32px;
+  }
+
+  .logo {
+    margin-bottom: 40px;
+  }
+
+  .card {
+    width: 380px;
+    padding: 36px 32px 32px;
+  }
+}
+
+@media (max-width: 400px) {
+  .headline {
+    font-size: 2rem;
+  }
+
+  .card {
+    padding: 28px 20px 24px;
+  }
+}

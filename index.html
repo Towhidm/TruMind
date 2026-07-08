@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mental Health Welfare – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple-deep: #3b1fa3;
+      --purple-mid: #7c3aed;
+      --purple-soft: #a78bfa;
+      --purple-light: #ede9fe;
+      --pink-accent: #ec4899;
+      --bg-left: #c4b5fd;
+      --card-bg: #ffffff;
+      --text-dark: #1e1b4b;
+      --text-muted: #6b7280;
+      --input-bg: #f5f3ff;
+      --border: #e0d9f7;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #d8d0f8 0%, #c4b5fd 30%, #b8a7f0 55%, #d4a5c9 75%, #e8b4b8 100%);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Scenic SVG background */
+    .bg-scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating dots */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      animation: floatDot 4s ease-in-out infinite;
+    }
+    .dot:nth-child(1) { width: 8px; height: 8px; top: 18%; right: 42%; animation-delay: 0s; }
+    .dot:nth-child(2) { width: 5px; height: 5px; top: 12%; right: 38%; animation-delay: 0.8s; }
+    .dot:nth-child(3) { width: 6px; height: 6px; top: 22%; right: 10%; animation-delay: 1.5s; }
+    .dot:nth-child(4) { width: 9px; height: 9px; top: 8%; right: 8%; animation-delay: 0.4s; }
+
+    @keyframes floatDot {
+      0%, 100% { transform: translateY(0); opacity: 0.6; }
+      50% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    /* Layout */
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 40px 24px;
+      gap: 0;
+    }
+
+    /* Left panel */
+    .left {
+      flex: 1;
+      padding-right: 60px;
+      animation: fadeSlideLeft 0.8s ease both;
+    }
+
+    @keyframes fadeSlideLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 60px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-dark);
+    }
+
+    .logo-icon { font-size: 22px; }
+
+    .headline {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+    }
+
+    .headline .accent { color: var(--purple-mid); }
+
+    .underline-bar {
+      width: 48px;
+      height: 4px;
+      background: var(--purple-mid);
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+
+    .tagline {
+      font-size: 15px;
+      color: #4c4a6e;
+      line-height: 1.7;
+      max-width: 300px;
+      margin-bottom: 48px;
+    }
+
+    /* Birds */
+    .birds {
+      margin-bottom: 32px;
+      opacity: 0.6;
+      font-size: 18px;
+      letter-spacing: 4px;
+      animation: birdFly 3s ease-in-out infinite;
+    }
+    @keyframes birdFly {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+
+    /* Privacy card */
+    .privacy-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 16px;
+      padding: 16px 20px;
+      max-width: 310px;
+    }
+
+    .privacy-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--purple-mid), var(--purple-soft));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .privacy-text strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--purple-mid);
+      margin-bottom: 2px;
+    }
+
+    .privacy-text span {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* Right panel – card */
+    .card {
+      width: 420px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      border-radius: 28px;
+      padding: 44px 40px 40px;
+      box-shadow: 0 24px 80px rgba(100, 60, 200, 0.18), 0 4px 20px rgba(0,0,0,0.06);
+      animation: fadeSlideRight 0.8s ease both;
+    }
+
+    @keyframes fadeSlideRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Heart icon */
+    .card-icon-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(145deg, #f0ebff, #e8defe);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 0 10px rgba(167,139,250,0.12), 0 0 0 20px rgba(167,139,250,0.06);
+    }
+
+    .card-icon svg { width: 36px; height: 36px; }
+
+    .card-title {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--text-dark);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .card-sub {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    /* Inputs */
+    .input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon svg { width: 18px; height: 18px; }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 44px;
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    input:focus {
+      border-color: var(--purple-soft);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    }
+
+    input::placeholder { color: #b0aac8; }
+
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a0aec0;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .eye-btn:hover { color: var(--purple-mid); }
+    .eye-btn svg { width: 18px; height: 18px; }
+
+    /* Remember + Forgot */
+    .row-remember {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .remember-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text-dark);
+      user-select: none;
+    }
+
+    .custom-check {
+      width: 18px;
+      height: 18px;
+      background: var(--purple-mid);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .custom-check svg { width: 11px; height: 11px; }
+
+    .forgot {
+      font-size: 13.5px;
+      color: var(--purple-mid);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .forgot:hover { color: var(--purple-deep); }
+
+    /* Login button */
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(90deg, #7c3aed 0%, #c026d3 100%);
+      color: white;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+      margin-bottom: 20px;
+    }
+
+    .btn-login:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 12px 32px rgba(124, 58, 237, 0.45); }
+    .btn-login:active { transform: translateY(0); }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Social buttons */
+    .social-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn-social {
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-social:hover { border-color: var(--purple-soft); box-shadow: 0 4px 14px rgba(124,58,237,0.12); transform: translateY(-1px); }
+
+    .btn-social img { width: 20px; height: 20px; }
+
+    /* Register link */
+    .register-row {
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+
+    .register-row a {
+      color: var(--purple-mid);
+      font-weight: 700;
+      text-decoration: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .register-row a:hover { text-decoration: underline; }
+
+    /* Meditating figure + landscape bottom-left */
+    .scene-left {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 480px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floral right edge */
+    .scene-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 120px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @media (max-width: 800px) {
+      .page { flex-direction: column; align-items: center; padding: 32px 16px; }
+      .left { padding-right: 0; text-align: center; margin-bottom: 32px; }
+      .headline { font-size: 2.2rem; }
+      .tagline, .privacy-card { margin: 0 auto 20px; }
+      .underline-bar { margin: 0 auto 24px; }
+      .birds { text-align: center; }
+      .card { width: 100%; max-width: 420px; }
+      .scene-left, .scene-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background landscape SVG -->
+  <svg class="bg-scene" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sky gradient -->
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#c4b5fd"/>
+        <stop offset="50%" stop-color="#ddd6fe"/>
+        <stop offset="100%" stop-color="#f0abfc" stop-opacity="0.4"/>
+      </linearGradient>
+      <linearGradient id="sunGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%" id="sunGrad2" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stop-color="#fde68a"/>
+        <stop offset="100%" stop-color="#fca5a5"/>
+      </linearGradient>
+      <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fde68a" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#fca5a5" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.6"/>
+      </linearGradient>
+      <linearGradient id="mtnNear" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5b21b6" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="#3b0764" stop-opacity="0.95"/>
+      </linearGradient>
+      <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fde68a" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0.6"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Sun glow -->
+    <ellipse cx="310" cy="470" rx="120" ry="120" fill="url(#sunGlow)" opacity="0.7"/>
+    <!-- Sun -->
+    <circle cx="310" cy="470" r="40" fill="#fde68a" opacity="0.9"/>
+
+    <!-- Far mountains -->
+    <polygon points="0,560 80,420 160,500 240,380 350,460 430,350 530,440 650,370 750,440 870,340 1000,430 1100,360 1200,400 1200,700 0,700" fill="url(#mtnFar)"/>
+
+    <!-- Water reflection -->
+    <ellipse cx="310" cy="560" rx="200" ry="40" fill="url(#waterGrad)" opacity="0.5"/>
+
+    <!-- Near mountains / hills -->
+    <polygon points="0,600 100,500 200,560 300,490 420,580 520,510 650,590 800,520 950,600 1100,530 1200,580 1200,700 0,700" fill="url(#mtnNear)"/>
+
+    <!-- Ground -->
+    <rect x="0" y="650" width="1200" height="50" fill="#2e1065" opacity="0.9"/>
+
+    <!-- Meditating figure silhouette -->
+    <g transform="translate(110, 560)" opacity="0.95">
+      <!-- Body in lotus -->
+      <ellipse cx="50" cy="80" rx="38" ry="18" fill="#1e0a3c"/>
+      <!-- Torso -->
+      <path d="M30,80 Q50,30 70,80" fill="#1e0a3c"/>
+      <!-- Head -->
+      <circle cx="50" cy="24" r="14" fill="#1e0a3c"/>
+      <!-- Arms -->
+      <path d="M30,62 Q10,75 15,85" stroke="#1e0a3c" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M70,62 Q90,75 85,85" stroke="#1e0a3c" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- Decorative plants left -->
+    <g opacity="0.6">
+      <path d="M20,700 Q10,640 30,600 Q40,640 20,700" fill="#5b21b6"/>
+      <path d="M40,700 Q20,650 50,610 Q60,655 40,700" fill="#6d28d9"/>
+      <path d="M0,700 Q-5,660 15,630 Q22,665 0,700" fill="#4c1d95"/>
+    </g>
+
+    <!-- Decorative plants right -->
+    <g transform="translate(1100,0)" opacity="0.35">
+      <path d="M80,700 Q85,600 100,520 Q115,600 80,700" fill="#7c3aed"/>
+      <path d="M100,700 Q110,610 130,550 Q145,615 100,700" fill="#8b5cf6"/>
+      <path d="M60,700 Q55,640 70,580 Q82,645 60,700" fill="#6d28d9"/>
+      <path d="M110,600 Q125,540 140,500" stroke="#a78bfa" stroke-width="2" fill="none"/>
+      <ellipse cx="140" cy="495" rx="12" ry="8" fill="#a78bfa" transform="rotate(-20,140,495)"/>
+      <path d="M95,560 Q108,510 118,480" stroke="#c4b5fd" stroke-width="1.5" fill="none"/>
+      <ellipse cx="118" cy="475" rx="9" ry="6" fill="#c4b5fd" transform="rotate(10,118,475)"/>
+    </g>
+
+    <!-- Birds -->
+    <g opacity="0.5" fill="none" stroke="#3b0764" stroke-width="2" stroke-linecap="round">
+      <path d="M460,220 Q465,215 470,220"/>
+      <path d="M475,210 Q481,204 487,210"/>
+      <path d="M452,235 Q456,230 460,235"/>
+    </g>
+  </svg>
+
+  <!-- Floating dots -->
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+
+  <div class="page">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="logo">
+        <span class="logo-icon">🧠</span>
+        Mental Health Welfare
+      </div>
+
+      <h1 class="headline">
+        Your Mental<br>
+        Well-being<br>
+        <span class="accent">Matters</span>
+      </h1>
+      <div class="underline-bar"></div>
+
+      <p class="tagline">Take a step towards better mental health. Answer a few questions and understand your emotional well-being.</p>
+
+      <div class="birds">〜 ✦ 〜</div>
+
+      <div class="privacy-card">
+        <div class="privacy-icon">🛡️</div>
+        <div class="privacy-text">
+          <strong>Your privacy is our priority</strong>
+          <span>All your data is secure and confidential.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT – Card -->
+    <div class="card">
+      <div class="card-icon-wrap">
+        <div class="card-icon">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 30s-13-8.5-13-17a8 8 0 0116 0 8 8 0 0116 0c0 8.5-13 17-13 17z" fill="url(#heartGrad)" stroke="#7c3aed" stroke-width="1.5"/>
+            <defs>
+              <linearGradient id="heartGrad" x1="5" y1="5" x2="31" y2="31" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+      
+
+      <h2 class="card-title">Welcome Back</h2>
+      <p class="card-sub">Login to continue your mental health journey</p>
+
+      <!-- Email -->
+      <div class="input-group">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"/>
+            <path d="M2 7l10 7 10-7"/>
+          </svg>
+        </span>
+        <input type="email" id="emailInput" placeholder="Enter your email" autocomplete="email"/>
+      </div>
+
+      <!-- Password -->
+      <div class="input-group">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/>
+            <path d="M8 11V7a4 4 0 018 0v4"/>
+          </svg>
+        </span>
+        <input type="password" id="pwInput" placeholder="Enter your password" autocomplete="current-password"/>
+        <button class="eye-btn" onclick="togglePassword()" id="eyeBtn" type="button" aria-label="Toggle password">
+          <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Remember / Forgot -->
+      <div class="row-remember">
+        <label class="remember-label" id="rememberLabel">
+          <div class="custom-check" id="checkBox">
+            <svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="2,6 5,9 10,3"/>
+            </svg>
+          </div>
+          Remember me
+        </label>
+        <a href="#" class="forgot">Forgot Password?</a>
+      </div>
+
+      <!-- Login button -->
+      <button class="btn-login" onclick="handleLogin()">
+        Login
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <!-- Divider -->
+      <div class="divider">or continue with</div>
+
+      <!-- Social -->
+      <div class="social-row">
+        <button class="btn-social">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"/>
+          Google
+        </button>
+        <button class="btn-social">
+          <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook"/>
+          Facebook
+        </button>
+      </div>
+
+      <!-- Register -->
+      <p class="register-row">
+  Don't have an account? <a href="register.html">Register</a>
+</p>
+    </div>
+  </div>
+
+  <script>
+    let passwordVisible = false;
+    let rememberChecked = true;
+
+    function togglePassword() {
+      passwordVisible = !passwordVisible;
+      const input = document.getElementById('pwInput');
+      const icon = document.getElementById('eyeIcon');
+      input.type = passwordVisible ? 'text' : 'password';
+      icon.innerHTML = passwordVisible
+        ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.8"/>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    }
+
+    document.getElementById('rememberLabel').addEventListener('click', function() {
+      rememberChecked = !rememberChecked;
+      const box = document.getElementById('checkBox');
+      box.style.background = rememberChecked
+        ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
+        : '#e5e7eb';
+      box.innerHTML = rememberChecked
+        ? `<svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>`
+        : '';
+    });
+
+
+function handleLogin() {
+  const email = document.getElementById('emailInput').value;
+  const pw = document.getElementById('pwInput').value;
+  const btn = document.querySelector('.btn-login');
+  
+  // ফিল্ড খালি থাকলে এরর দেখাবে
+  if (!email || !pw) {
+    btn.style.background = 'linear-gradient(90deg,#ef4444,#f97316)';
+    btn.textContent = 'Please fill in all fields';
+    setTimeout(() => {
+      btn.style.background = 'linear-gradient(90deg,#7c3aed,#c026d3)';
+      btn.innerHTML = 'Login <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    }, 2000);
+    return;
+  }
+  
+  // লগইন সফল হলে ড্যাশবোর্ডে নিয়ে যাবে
+  btn.innerHTML = '✓ Logging in...';
+  btn.style.opacity = '0.8';
+  
+  setTimeout(() => {
+    // একই ফোল্ডারে থাকা dashboard.html পেজে রিডাইরেক্ট করবে
+    window.location.href = 'dashboard.html';
+  }, 800); // ৮০০ মিলিমেকেন্ডের একটি ছোট অ্যানিমেশন ডিলে
+}
+
+    
+
+    // function handleLogin() {
+    //   const email = document.getElementById('emailInput').value;
+    //   const pw = document.getElementById('pwInput').value;
+    //   const btn = document.querySelector('.btn-login');
+    //   if (!email || !pw) {
+    //     btn.style.background = 'linear-gradient(90deg,#ef4444,#f97316)';
+    //     btn.textContent = 'Please fill in all fields';
+    //     setTimeout(() => {
+    //       btn.style.background = 'linear-gradient(90deg,#7c3aed,#c026d3)';
+    //       btn.innerHTML = 'Login <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    //     }, 2000);
+    //     return;
+    //   }
+    //   btn.innerHTML = '✓ Logging in...';
+    //   btn.style.opacity = '0.8';
+      
+    // }
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#1a1640',       /* সাইডবারের ডার্ক ব্লু */
+                        lightBg: '#f7f6ff',      /* মেইন বডির হালকা পার্পল */
+                        activePurp: '#3b2f80',   /* সিলেক্টেড মেনু ব্যাকগ্রাউন্ড */
+                        borderPurp: '#e2dff7',   /* সার্চবার ও প্রোফাইলের বর্ডার */
+                        accentPurp: '#a855f7',   /* ব্রেইন লোগোর ব্যাকগ্রাউন্ড */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="bg-lightBg h-screen flex overflow-hidden">
+
+    <aside class="w-24 bg-darkBg flex flex-col justify-between items-center py-6 shrink-0">
+        <div class="flex flex-col items-center gap-8 w-full">
+            <div class="w-12 h-12 bg-accentPurp rounded-2xl flex items-center justify-center text-white shadow-md cursor-pointer">
+                <i data-lucide="brain"></i>
+            </div>
+            
+            <nav class="flex flex-col items-center gap-6 w-full px-2">
+                <div class="relative w-full flex justify-center py-3 bg-activePurp rounded-xl text-purple-300 cursor-pointer">
+                    <div class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-purple-400 rounded-r"></div>
+                    <i data-lucide="layout-dashboard"></i>
+                </div>
+                <div class="w-full flex justify-center py-3 text-slate-500 hover:text-purple-300 transition cursor-pointer">
+                    <i data-lucide="bar-chart-3"></i>
+                </div>
+                <div class="w-full flex justify-center py-3 text-slate-500 hover:text-purple-300 transition cursor-pointer">
+                    <i data-lucide="calendar"></i>
+                </div>
+                <div class="w-full flex justify-center py-3 text-slate-500 hover:text-purple-300 transition cursor-pointer">
+                    <i data-lucide="users"></i>
+                </div>
+            </nav>
+        </div>
+
+        <div class="w-full flex justify-center py-3 text-slate-500 hover:text-purple-300 transition cursor-pointer">
+            <i data-lucide="settings"></i>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <header class="bg-white h-20 px-8 flex items-center justify-between border-b border-purple-100 shrink-0">
+            <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative flex items-center">
+                    <i data-lucide="search" class="absolute left-4 text-purple-400 w-4 h-4"></i>
+                    <input type="text" placeholder="Search anything" class="w-80 pl-11 pr-4 py-2.5 bg-purple-50/40 border border-borderPurp rounded-full text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-200 transition">
+                </div>
+
+                <div class="p-2.5 border border-borderPurp rounded-xl text-purple-500 hover:bg-purple-50 cursor-pointer transition">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </div>
+
+                <div class="flex items-center gap-3 pl-3 pr-6 py-1.5 bg-purple-50/40 border border-borderPurp rounded-full cursor-pointer hover:bg-purple-50 transition">
+                    <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        AW
+                    </div>
+                    <div class="flex flex-col leading-none">
+                        <span class="text-sm font-semibold text-slate-800">Arnold</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Warner</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
+            <div class="flex flex-col items-center max-w-sm text-center">
+                <div class="w-24 h-24 rounded-full border-2 border-purple-200 flex items-center justify-center p-4 mb-4 bg-white/50">
+                    <div class="w-full h-full bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-center text-purple-400">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-slate-700 mb-1">Dashboard content is being built</h3>
+                <p class="text-sm text-slate-400">Your mental health insights will appear here</p>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
