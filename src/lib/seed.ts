@@ -1,25 +1,21 @@
 import { connectDB } from "@/lib/mongodb";
 import { StoryCategory } from "@/models/StoryCategory";
 import { Story } from "@/models/Story";
+import { clearStoryMetaCache } from "@/lib/story-cache";
 
 const CATEGORIES = [
   { name: "Life", slug: "life", description: "Everyday life stories", order: 1 },
   { name: "University", slug: "university", description: "Campus and student life", order: 2 },
-  { name: "Adventure", slug: "adventure", description: "Journeys and discoveries", order: 3 },
-  { name: "Mystery", slug: "mystery", description: "Secrets waiting to unfold", order: 4 },
-  { name: "Fantasy", slug: "fantasy", description: "Magical worlds", order: 5 },
-  { name: "Family", slug: "family", description: "Home and relationships", order: 6 },
-  { name: "Healing", slug: "healing", description: "Paths toward peace", order: 7 },
-  { name: "Dreams", slug: "dreams", description: "Stories of the mind", order: 8 },
 ];
+
+const ACTIVE_SLUGS = ["seven-days", "campus-lights"];
 
 const STORIES = [
   {
     categorySlug: "life",
     title: "Seven Days",
     slug: "seven-days",
-    description:
-      "A quiet week in your life unfolds day by day. Each morning brings something new — and something you have been carrying in silence.",
+    description: "You spend one week at home. Each day asks how you feel.",
     estimatedMinutes: 18,
     difficulty: "easy" as const,
     storyKey: "seven-days",
@@ -28,103 +24,81 @@ const STORIES = [
     categorySlug: "university",
     title: "Campus Lights",
     slug: "campus-lights",
-    description:
-      "Your first semester away from home. Late nights, new faces, and a dorm room that slowly starts to feel like yours — or doesn't.",
+    description: "You are a student away from home. Campus life feels new and hard.",
     estimatedMinutes: 18,
     difficulty: "easy" as const,
     storyKey: "campus-lights",
   },
-  {
-    categorySlug: "mystery",
-    title: "The Old Key",
-    slug: "the-old-key",
-    description:
-      "A small brass key arrives in the mail with no note. One locked box in the attic. Something inside wants to be found.",
-    estimatedMinutes: 18,
-    difficulty: "medium" as const,
-    storyKey: "the-old-key",
-  },
-  {
-    categorySlug: "adventure",
-    title: "Mountain Path",
-    slug: "mountain-path",
-    description:
-      "You signed up for a trail you have never walked. The mountain does not rush you. But it does not lie about what the climb costs.",
-    estimatedMinutes: 18,
-    difficulty: "medium" as const,
-    storyKey: "mountain-path",
-  },
-  {
-    categorySlug: "family",
-    title: "Sunday Table",
-    slug: "sunday-table",
-    description:
-      "Every Sunday your family gathers around the same old table. Same chairs. Same recipes. Something shifts when you start noticing what is not said.",
-    estimatedMinutes: 18,
-    difficulty: "easy" as const,
-    storyKey: "sunday-table",
-  },
-  {
-    categorySlug: "fantasy",
-    title: "The Moon Gate",
-    slug: "moon-gate",
-    description:
-      "In an old forest at the edge of town, a hidden gate appears only when the moon is full. You were told not to go. You go anyway — and what waits on the other side knows your name.",
-    estimatedMinutes: 18,
-    difficulty: "medium" as const,
-    storyKey: "moon-gate",
-  },
-  {
-    categorySlug: "healing",
-    title: "Quiet Garden",
-    slug: "quiet-garden",
-    description:
-      "Behind the clinic wall, through a gap you were not meant to find, lies a forgotten garden. Weeds and wildflowers. A broken bench. Something about this place makes the noise in your head go still — for a moment.",
-    estimatedMinutes: 18,
-    difficulty: "easy" as const,
-    storyKey: "quiet-garden",
-  },
-  {
-    categorySlug: "dreams",
-    title: "Night Train",
-    slug: "night-train",
-    description:
-      "At midnight a train arrives at the old platform — lights on, doors open, schedule empty. No one else sees it. The conductor nods like he has been waiting for you. Where it goes is not on any map you know.",
-    estimatedMinutes: 18,
-    difficulty: "medium" as const,
-    storyKey: "night-train",
-  },
 ];
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __storiesSeeded: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __storiesSeedPromise: Promise<void> | undefined;
+  // eslint-disable-next-line no-var
+  var __storiesSeedVersion: number | undefined;
+}
+
+const SEED_VERSION = 3;
+
+/** Runs once per server process (per seed version). */
 export async function seedStories() {
-  await connectDB();
+  if (global.__storiesSeeded && global.__storiesSeedVersion === SEED_VERSION) return;
 
-  for (const cat of CATEGORIES) {
-    await StoryCategory.findOneAndUpdate({ slug: cat.slug }, cat, {
-      upsert: true,
-      returnDocument: "after",
-    });
+  if (!global.__storiesSeedPromise || global.__storiesSeedVersion !== SEED_VERSION) {
+    global.__storiesSeedVersion = SEED_VERSION;
+    global.__storiesSeedPromise = (async () => {
+      await connectDB();
+      clearStoryMetaCache();
+
+      await Promise.all(
+        CATEGORIES.map((cat) =>
+          StoryCategory.findOneAndUpdate({ slug: cat.slug }, cat, {
+            upsert: true,
+            returnDocument: "after",
+          })
+        )
+      );
+
+      const categories = await StoryCategory.find({
+        slug: { $in: CATEGORIES.map((c) => c.slug) },
+      }).lean();
+      const categoryBySlug = new Map(categories.map((c) => [c.slug, c._id]));
+
+      await Promise.all(
+        STORIES.map((story) => {
+          const categoryId = categoryBySlug.get(story.categorySlug);
+          if (!categoryId) return Promise.resolve();
+
+          return Story.findOneAndUpdate(
+            { slug: story.slug },
+            {
+              categoryId,
+              title: story.title,
+              slug: story.slug,
+              description: story.description,
+              coverImage: "",
+              estimatedMinutes: story.estimatedMinutes,
+              difficulty: story.difficulty,
+              chapterCount: 9,
+              storyKey: story.storyKey,
+              isPublished: true,
+            },
+            { upsert: true, returnDocument: "after" }
+          );
+        })
+      );
+
+      // Hide removed stories from the library
+      await Story.updateMany(
+        { slug: { $nin: ACTIVE_SLUGS } },
+        { $set: { isPublished: false } }
+      );
+
+      global.__storiesSeeded = true;
+    })();
   }
 
-  for (const story of STORIES) {
-    const category = await StoryCategory.findOne({ slug: story.categorySlug });
-    if (!category) continue;
-
-    await Story.findOneAndUpdate(
-      { slug: story.slug },
-      {
-        categoryId: category._id,
-        title: story.title,
-        slug: story.slug,
-        description: story.description,
-        coverImage: "",
-        estimatedMinutes: story.estimatedMinutes,
-        difficulty: story.difficulty,
-        chapterCount: 9,
-        storyKey: story.storyKey,
-        isPublished: true,
-      },
-      { upsert: true, returnDocument: "after" }
-    );
-  }
+  await global.__storiesSeedPromise;
 }

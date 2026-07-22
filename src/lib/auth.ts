@@ -25,23 +25,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
 
-      const { connectDB } = await import("@/lib/mongodb");
-      const { User } = await import("@/models/User");
+      try {
+        const { connectDB } = await import("@/lib/mongodb");
+        const { User } = await import("@/models/User");
 
-      await connectDB();
+        await connectDB();
 
-      await User.findOneAndUpdate(
-        { googleId: account.providerAccountId },
-        {
-          name: user.name ?? "User",
-          email: user.email,
-          image: user.image,
-          googleId: account.providerAccountId,
-        },
-        { upsert: true, returnDocument: "after" }
-      );
+        const googleId = account.providerAccountId;
+        const email = user.email;
 
-      return true;
+        // Prefer googleId, then email — avoid duplicate-email upsert crashes
+        const existing =
+          (await User.findOne({ googleId })) ?? (await User.findOne({ email }));
+
+        if (existing) {
+          existing.name = user.name ?? existing.name;
+          existing.email = email;
+          existing.image = user.image ?? existing.image;
+          existing.googleId = googleId;
+          await existing.save();
+        } else {
+          await User.create({
+            name: user.name ?? "User",
+            email,
+            image: user.image,
+            googleId,
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error("[auth] signIn failed:", error);
+        return false;
+      }
     },
   },
 });

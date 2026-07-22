@@ -15,12 +15,12 @@ export default function Q9SupportModal({ open, onClose }: Q9SupportModalProps) {
       open={open}
       onOk={onClose}
       onCancel={onClose}
-      okText="I understand"
+      okText="Okay"
       cancelButtonProps={{ style: { display: "none" } }}
     >
       <p className="mb-4 text-slate-600">
-        Thank you for being honest. If you are having thoughts of hurting yourself, please reach out
-        for support. You deserve help, and people care about you.
+        Thank you for telling the truth. If you have dark thoughts, please talk to someone. You
+        matter. People want to help you.
       </p>
       <ul className="space-y-2">
         {Q9_SUPPORT_RESOURCES.map((r) => (
@@ -32,7 +32,7 @@ export default function Q9SupportModal({ open, onClose }: Q9SupportModalProps) {
         ))}
       </ul>
       <p className="mt-4 text-xs text-slate-400">
-        This is not a diagnosis. If you are in immediate danger, please call emergency services.
+        This is not a medical test. If you are in danger now, call emergency help.
       </p>
     </Modal>
   );

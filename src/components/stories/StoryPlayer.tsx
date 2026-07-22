@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Progress, Spin } from "antd";
+import { Progress } from "antd";
 import { getNextScene } from "@/lib/story-engine/navigation";
 import { saveChapterAnswer } from "@/actions/story.actions";
 import SceneRenderer from "./SceneRenderer";
@@ -29,6 +29,7 @@ export default function StoryPlayer({
   completionPercent,
 }: StoryPlayerProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [chapter, setChapter] = useState(initialChapter);
   const [sceneId, setSceneId] = useState(initialSceneId);
   const [chapterNum, setChapterNum] = useState(currentChapterNum);
@@ -36,10 +37,14 @@ export default function StoryPlayer({
   const [isSaving, setIsSaving] = useState(false);
   const [showQ9, setShowQ9] = useState(false);
 
-  const scene = chapter.scenes.find((s) => s.id === sceneId);
+  const scene =
+    chapter.scenes.find((s) => s.id === sceneId) ?? chapter.scenes[0] ?? null;
 
   const handleNext = useCallback(() => {
-    const next = getNextScene(chapter, sceneId);
+    const activeId = chapter.scenes.some((s) => s.id === sceneId)
+      ? sceneId
+      : (chapter.scenes[0]?.id ?? sceneId);
+    const next = getNextScene(chapter, activeId);
     if (next) setSceneId(next.id);
   }, [chapter, sceneId]);
 
@@ -58,19 +63,17 @@ export default function StoryPlayer({
       }
 
       if (result.completed && result.assessmentId) {
-        router.push(`/dashboard/stories/${storySlug}/result/${result.assessmentId}`);
+        startTransition(() => {
+          router.push(`/dashboard/stories/${storySlug}/result/${result.assessmentId}`);
+        });
         return;
       }
 
-      if (result.nextChapter && result.nextSceneId) {
-        const { getPlayState } = await import("@/actions/story.actions");
-        const state = await getPlayState(storySlug);
-        if (state?.chapter) {
-          setChapter(state.chapter);
-          setSceneId(result.nextSceneId);
-          setChapterNum(result.nextChapter);
-          setProgress(state.completionPercent);
-        }
+      if (!result.completed && result.chapter && result.nextSceneId) {
+        setChapter(result.chapter);
+        setSceneId(result.nextSceneId);
+        setChapterNum(result.nextChapter);
+        setProgress(result.completionPercent);
       }
     } finally {
       setIsSaving(false);
@@ -79,14 +82,14 @@ export default function StoryPlayer({
 
   if (!scene) {
     return (
-      <div className="flex justify-center py-12">
-        <Spin size="large" />
+      <div className="mx-auto flex min-h-full w-full max-w-2xl items-center justify-center py-12">
+        <p className="text-sm text-slate-500">This story could not be loaded. Try starting again.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex w-full max-w-3xl flex-col gap-4 md:max-w-2xl md:gap-6">
+    <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col justify-center gap-4 py-4 md:gap-6">
       <div>
         <h2 className="text-lg font-bold text-slate-800 sm:text-xl">{storyTitle}</h2>
         <Progress percent={progress} strokeColor="#7c3aed" className="mt-2" />
@@ -99,7 +102,7 @@ export default function StoryPlayer({
         totalChapters={totalChapters}
         onNext={handleNext}
         onChoice={handleChoice}
-        isSaving={isSaving}
+        isSaving={isSaving || isPending}
       />
 
       <Q9SupportModal open={showQ9} onClose={() => setShowQ9(false)} />

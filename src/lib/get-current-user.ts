@@ -1,8 +1,10 @@
+import { cache } from "react";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { User, type IUser } from "@/models/User";
 
-export async function getCurrentUser(): Promise<IUser | null> {
+/** Dedupes auth + DB user lookup within a single request */
+export const getCurrentUser = cache(async (): Promise<IUser | null> => {
   const session = await auth();
   if (!session?.user?.email) return null;
 
@@ -11,29 +13,29 @@ export async function getCurrentUser(): Promise<IUser | null> {
   const googleId = session.user.id;
   const email = session.user.email;
 
-  if (googleId) {
-    const byGoogleId = await User.findOne({ googleId });
-    if (byGoogleId) return byGoogleId;
-  }
+  const user = await User.findOne(
+    googleId ? { $or: [{ googleId }, { email }] } : { email }
+  ).lean();
 
-  const byEmail = await User.findOne({ email });
-  if (byEmail) {
-    if (googleId && byEmail.googleId !== googleId) {
-      byEmail.googleId = googleId;
-      await byEmail.save();
+  if (user) {
+    if (googleId && user.googleId !== googleId) {
+      await User.updateOne({ _id: user._id }, { $set: { googleId } });
+      return { ...user, googleId } as IUser;
     }
-    return byEmail;
+    return user as IUser;
   }
 
   if (!googleId) return null;
 
-  return User.create({
+  const created = await User.create({
     name: session.user.name ?? "User",
     email,
     image: session.user.image ?? undefined,
     googleId,
   });
-}
+
+  return created.toObject() as IUser;
+});
 
 export async function requireCurrentUser(): Promise<IUser> {
   const user = await getCurrentUser();

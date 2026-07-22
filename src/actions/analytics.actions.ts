@@ -37,30 +37,29 @@ export async function getAnalytics(): Promise<AnalyticsData> {
   await connectDB();
 
   const assessments = await Assessment.find({ userId: user._id })
-    .populate({ path: "storyId", populate: { path: "categoryId" } })
+    .populate({
+      path: "storyId",
+      select: "title slug categoryId",
+      populate: { path: "categoryId", select: "name" },
+    })
+    .select("storyId totalScore severity severityLabel completedAt answers")
     .sort({ completedAt: -1 })
+    .limit(50)
     .lean();
 
-  const uniqueStoryIds = new Set(assessments.map((a) => a.storyId.toString()));
+  const uniqueStoryIds = new Set(
+    assessments.map((a) => {
+      const sid = a.storyId as unknown as { _id?: { toString(): string } } | string;
+      return typeof sid === "string" ? sid : (sid?._id?.toString() ?? String(sid));
+    })
+  );
 
   const totalScore = assessments.reduce((sum, a) => sum + a.totalScore, 0);
-  const averageScore = assessments.length > 0 ? Math.round((totalScore / assessments.length) * 10) / 10 : 0;
-
-  const categoryMap = new Map<string, { count: number; total: number }>();
+  const averageScore =
+    assessments.length > 0 ? Math.round((totalScore / assessments.length) * 10) / 10 : 0;
 
   const recentResults = assessments.slice(0, 5).map((a) => {
-    const story = a.storyId as unknown as {
-      title: string;
-      slug: string;
-      categoryId?: { name: string };
-    };
-    const catName = story?.categoryId?.name ?? "Other";
-    const existing = categoryMap.get(catName) ?? { count: 0, total: 0 };
-    categoryMap.set(catName, {
-      count: existing.count + 1,
-      total: existing.total + a.totalScore,
-    });
-
+    const story = a.storyId as unknown as { title: string; slug: string };
     return {
       id: a._id.toString(),
       storyTitle: story?.title ?? "Unknown",
@@ -71,21 +70,6 @@ export async function getAnalytics(): Promise<AnalyticsData> {
     };
   });
 
-  assessments.forEach((a) => {
-    const story = a.storyId as unknown as { categoryId?: { name: string } };
-    const catName = story?.categoryId?.name ?? "Other";
-    if (!recentResults.find((r) => r.id === a._id.toString())) {
-      const existing = categoryMap.get(catName) ?? { count: 0, total: 0 };
-      if (!categoryMap.has(catName) || existing.count === 0) {
-        categoryMap.set(catName, {
-          count: existing.count + 1,
-          total: existing.total + a.totalScore,
-        });
-      }
-    }
-  });
-
-  // Rebuild category breakdown from all assessments
   const catBreakdown = new Map<string, { count: number; total: number }>();
   assessments.forEach((a) => {
     const story = a.storyId as unknown as { categoryId?: { name: string } };
@@ -100,16 +84,14 @@ export async function getAnalytics(): Promise<AnalyticsData> {
     avgScore: data.count > 0 ? Math.round((data.total / data.count) * 10) / 10 : 0,
   }));
 
-  const scoreTrend = [...assessments]
-    .reverse()
-    .map((a) => {
-      const story = a.storyId as unknown as { title: string };
-      return {
-        date: a.completedAt.toISOString().split("T")[0],
-        score: a.totalScore,
-        storyTitle: story?.title ?? "Unknown",
-      };
-    });
+  const scoreTrend = [...assessments].reverse().map((a) => {
+    const story = a.storyId as unknown as { title: string };
+    return {
+      date: a.completedAt.toISOString().split("T")[0],
+      score: a.totalScore,
+      storyTitle: story?.title ?? "Unknown",
+    };
+  });
 
   const assessmentHistory = assessments.map((a) => {
     const story = a.storyId as unknown as { title: string; slug: string };

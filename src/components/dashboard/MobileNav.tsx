@@ -24,6 +24,7 @@ export default function MobileNav() {
           <Link
             key={href}
             href={href}
+            prefetch
             className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-xs transition sm:text-sm ${
               isActive ? "bg-[#3b2f80] text-purple-300" : "text-slate-400"
             }`}

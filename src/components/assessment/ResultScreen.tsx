@@ -23,6 +23,7 @@ interface ResultScreenProps {
 
 export default function ResultScreen({
   storyTitle,
+  storySlug,
   totalScore,
   severity,
   severityLabel,
@@ -37,7 +38,7 @@ export default function ResultScreen({
   });
 
   return (
-    <div className="w-full max-w-3xl space-y-6 md:max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl space-y-6">
       <Card className="border-purple-100">
         <div className="text-center">
           <p className="text-sm text-slate-500">You finished</p>
@@ -74,9 +75,9 @@ export default function ResultScreen({
       </Card>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Link href="/dashboard/analytics" className="flex-1">
+        <Link href={`/dashboard/stories/${storySlug}`} className="flex-1">
           <Button block size="large">
-            View History
+            Play Again
           </Button>
         </Link>
         <Link href="/dashboard" className="flex-1">

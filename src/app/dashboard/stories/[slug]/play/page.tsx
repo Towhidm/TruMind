@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { notFound } from "next/navigation";
 import StoryPlayer from "@/components/stories/StoryPlayer";
 import { getPlayState, ensureStoryProgress } from "@/actions/story.actions";
 
@@ -9,30 +7,38 @@ interface Props {
 }
 
 export default async function StoryPlayPage({ params }: Props) {
-  const session = await auth();
-  if (!session) redirect("/");
-
   const { slug } = await params;
   let state = await getPlayState(slug);
 
   if (!state) {
-    await ensureStoryProgress(slug);
-    state = await getPlayState(slug);
+    const created = await ensureStoryProgress(slug);
+    if (!created.chapter) notFound();
+
+    state = {
+      storyTitle: created.storyTitle,
+      storySlug: created.storySlug,
+      storyKey: created.storyKey,
+      progressId: created.progressId,
+      currentChapter: created.currentChapter,
+      currentScene: created.currentScene,
+      completionPercent: created.completionPercent,
+      totalChapters: created.totalChapters,
+      chapter: created.chapter,
+      answers: [],
+    };
   }
 
-  if (!state) notFound();
+  if (!state?.chapter) notFound();
 
   return (
-    <DashboardLayout>
-      <StoryPlayer
-        initialChapter={state.chapter}
-        initialSceneId={state.currentScene}
-        storySlug={state.storySlug}
-        storyTitle={state.storyTitle}
-        currentChapterNum={state.currentChapter}
-        totalChapters={state.totalChapters}
-        completionPercent={state.completionPercent}
-      />
-    </DashboardLayout>
+    <StoryPlayer
+      initialChapter={state.chapter}
+      initialSceneId={state.currentScene}
+      storySlug={state.storySlug}
+      storyTitle={state.storyTitle}
+      currentChapterNum={state.currentChapter}
+      totalChapters={state.totalChapters}
+      completionPercent={state.completionPercent}
+    />
   );
 }

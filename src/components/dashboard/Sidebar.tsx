@@ -20,9 +20,13 @@ export default function Sidebar() {
   return (
     <aside className="hidden w-24 shrink-0 flex-col items-center justify-between bg-[#1a1640] py-6 lg:flex">
       <div className="flex w-full flex-col items-center gap-8">
-        <div className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl bg-[#a855f7] text-white shadow-md">
+        <Link
+          href="/dashboard"
+          prefetch
+          className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl bg-[#a855f7] text-white shadow-md"
+        >
           <Brain size={22} />
-        </div>
+        </Link>
 
         <nav className="flex w-full flex-col items-center gap-6 px-2">
           {navItems.map(({ href, icon: Icon, label }) => {
@@ -35,6 +39,7 @@ export default function Sidebar() {
               <Link
                 key={href}
                 href={href}
+                prefetch
                 title={label}
                 className={`relative flex w-full cursor-pointer justify-center py-3 transition ${
                   isActive

@@ -14,10 +14,10 @@ interface SceneRendererProps {
 }
 
 const sceneIntro: Partial<Record<StoryScene["type"], string>> = {
-  memory: "A memory floats back...",
+  memory: "You remember something...",
   discovery: "You notice something...",
-  tension: "Everything slows down...",
-  reflection: "You pause for a breath...",
+  tension: "This moment feels hard...",
+  reflection: "Stop and think...",
 };
 
 export default function SceneRenderer({
@@ -84,7 +84,7 @@ export default function SceneRenderer({
               {scene.content}
             </p>
           )}
-          <p className="mb-3 text-sm font-medium text-purple-600">What happens next?</p>
+          <p className="mb-3 text-sm font-medium text-purple-600">What do you choose?</p>
           <div className="space-y-3">
             {scene.choices.map((choice) => (
               <Button

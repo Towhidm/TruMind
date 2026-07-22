@@ -4,15 +4,26 @@ import { connectDB } from "@/lib/mongodb";
 import { seedStories } from "@/lib/seed";
 import { requireCurrentUser } from "@/lib/get-current-user";
 import { getStoryByKey } from "@/lib/story-engine/loader";
-import { getChapter, getFirstScene, calculateCompletionPercent } from "@/lib/story-engine/navigation";
+import { getStoryMetaBySlug } from "@/lib/story-cache";
+import {
+  getChapter,
+  getFirstScene,
+  calculateCompletionPercent,
+  resolveSceneId,
+} from "@/lib/story-engine/navigation";
 import { getPhqQuestion } from "@/lib/phq9/scoring";
-import { calculateTotalScore, scoreToSeverity, shouldShowQ9Support } from "@/lib/phq9/scoring";
+import {
+  calculateTotalScore,
+  scoreToSeverity,
+  shouldShowQ9Support,
+} from "@/lib/phq9/scoring";
 import { Story } from "@/models/Story";
-import { StoryCategory } from "@/models/StoryCategory";
 import { StoryProgress, type IProgressAnswer } from "@/models/StoryProgress";
 import { Assessment } from "@/models/Assessment";
 import type { PhqScore } from "@/lib/phq9/types";
+import type { StoryChapter } from "@/lib/story-engine/types";
 import { revalidatePath } from "next/cache";
+import mongoose from "mongoose";
 
 export interface StoryWithProgress {
   _id: string;
@@ -33,27 +44,33 @@ export interface StoryWithProgress {
 }
 
 async function ensureSeed() {
-  await connectDB();
   await seedStories();
 }
 
 export async function getStories(): Promise<StoryWithProgress[]> {
-  const user = await requireCurrentUser();
-  await ensureSeed();
+  const [user] = await Promise.all([requireCurrentUser(), ensureSeed()]);
 
-  const stories = await Story.find({ isPublished: true }).populate("categoryId").lean();
-  const progresses = await StoryProgress.find({ userId: user._id }).lean();
-  const assessments = await Assessment.find({ userId: user._id }).lean();
+  const [stories, progresses, assessments] = await Promise.all([
+    Story.find({ isPublished: true })
+      .populate("categoryId", "name slug")
+      .select(
+        "title slug description coverImage estimatedMinutes difficulty chapterCount categoryId"
+      )
+      .lean(),
+    StoryProgress.find({ userId: user._id })
+      .select("storyId status completionPercent lastPlayedAt")
+      .lean(),
+    Assessment.find({ userId: user._id }).select("storyId").lean(),
+  ]);
 
   return stories.map((story) => {
+    const storyId = story._id.toString();
     const progress = progresses.find(
-      (p) => p.storyId.toString() === story._id.toString() && p.status === "in_progress"
+      (p) => p.storyId.toString() === storyId && p.status === "in_progress"
     );
-    const completedRuns = assessments.filter(
-      (a) => a.storyId.toString() === story._id.toString()
-    );
+    const completedRuns = assessments.filter((a) => a.storyId.toString() === storyId);
     const lastCompleted = progresses.find(
-      (p) => p.storyId.toString() === story._id.toString() && p.status === "completed"
+      (p) => p.storyId.toString() === storyId && p.status === "completed"
     );
 
     const category = story.categoryId as unknown as { name: string; slug: string };
@@ -63,7 +80,7 @@ export async function getStories(): Promise<StoryWithProgress[]> {
     else if (completedRuns.length > 0 || lastCompleted) status = "completed";
 
     return {
-      _id: story._id.toString(),
+      _id: storyId,
       title: story.title,
       slug: story.slug,
       description: story.description,
@@ -73,7 +90,8 @@ export async function getStories(): Promise<StoryWithProgress[]> {
       chapterCount: story.chapterCount,
       categoryName: category?.name ?? "Life",
       categorySlug: category?.slug ?? "life",
-      completionPercent: progress?.completionPercent ?? (completedRuns.length > 0 ? 100 : 0),
+      completionPercent:
+        progress?.completionPercent ?? (completedRuns.length > 0 ? 100 : 0),
       status,
       progressId: progress?._id.toString(),
       lastPlayedAt: progress?.lastPlayedAt?.toISOString(),
@@ -83,22 +101,28 @@ export async function getStories(): Promise<StoryWithProgress[]> {
 }
 
 export async function getStoryBySlug(slug: string) {
-  const user = await requireCurrentUser();
-  await ensureSeed();
+  const [user] = await Promise.all([requireCurrentUser(), ensureSeed()]);
 
-  const story = await Story.findOne({ slug, isPublished: true }).populate("categoryId").lean();
+  const story = await Story.findOne({ slug, isPublished: true })
+    .populate("categoryId", "name slug")
+    .lean();
   if (!story) return null;
 
-  const progress = await StoryProgress.findOne({
-    userId: user._id,
-    storyId: story._id,
-    status: "in_progress",
-  }).lean();
+  const storyObjectId = new mongoose.Types.ObjectId(story._id.toString());
 
-  const completedCount = await Assessment.countDocuments({
-    userId: user._id,
-    storyId: story._id,
-  });
+  const [progress, completedCount] = await Promise.all([
+    StoryProgress.findOne({
+      userId: user._id,
+      storyId: storyObjectId,
+      status: "in_progress",
+    })
+      .select("currentChapter currentScene completionPercent answers")
+      .lean(),
+    Assessment.countDocuments({
+      userId: user._id,
+      storyId: storyObjectId,
+    }),
+  ]);
 
   const category = story.categoryId as unknown as { name: string; slug: string };
   const definition = getStoryByKey(story.storyKey);
@@ -121,7 +145,7 @@ export async function getStoryBySlug(slug: string) {
           currentChapter: progress.currentChapter,
           currentScene: progress.currentScene,
           completionPercent: progress.completionPercent,
-          answersCount: progress.answers.length,
+          answersCount: progress.answers?.length ?? 0,
         }
       : null,
     completedCount,
@@ -129,62 +153,112 @@ export async function getStoryBySlug(slug: string) {
   };
 }
 
-async function initStoryProgress(storySlug: string) {
-  const user = await requireCurrentUser();
-  await ensureSeed();
+async function initStoryProgress(storySlug: string, options?: { forceReset?: boolean }) {
+  const forceReset = options?.forceReset ?? false;
+  const [user] = await Promise.all([requireCurrentUser(), ensureSeed()]);
 
-  const story = await Story.findOne({ slug: storySlug });
+  const story = await getStoryMetaBySlug(storySlug);
   if (!story) throw new Error("Story not found");
 
   const definition = getStoryByKey(story.storyKey);
   if (!definition) throw new Error("Story content not found");
 
+  const storyObjectId = new mongoose.Types.ObjectId(story._id);
   const firstChapter = getChapter(definition.chapters, 1);
   const firstScene = firstChapter ? getFirstScene(firstChapter) : null;
+  const sceneId = firstScene?.id ?? "intro";
 
-  const progress = await StoryProgress.findOneAndUpdate(
-    { userId: user._id, storyId: story._id, status: "in_progress" },
-    {
+  if (!forceReset) {
+    const existing = await StoryProgress.findOne({
       userId: user._id,
-      storyId: story._id,
-      currentChapter: 1,
-      currentScene: firstScene?.id ?? "intro",
-      answers: [],
-      completionPercent: 0,
+      storyId: storyObjectId,
       status: "in_progress",
-      lastPlayedAt: new Date(),
-    },
-    { upsert: true, returnDocument: "after" }
-  );
+    });
 
-  return { progressId: progress!._id.toString() };
+    if (existing) {
+      const chapter =
+        getChapter(definition.chapters, existing.currentChapter) ?? firstChapter;
+      if (!chapter) throw new Error("Story chapter not found");
+
+      const safeScene = resolveSceneId(chapter, existing.currentScene);
+      if (safeScene !== existing.currentScene) {
+        existing.currentScene = safeScene;
+        await existing.save();
+      }
+
+      return {
+        progressId: existing._id.toString(),
+        storyTitle: story.title,
+        storySlug: story.slug,
+        storyKey: story.storyKey,
+        currentChapter: existing.currentChapter,
+        currentScene: safeScene,
+        completionPercent: existing.completionPercent,
+        totalChapters: definition.chapters.length,
+        chapter,
+      };
+    }
+  }
+
+  // Start / Play Again: remove old progress and begin a fresh run.
+  // Assessment history is kept separately.
+  await StoryProgress.deleteMany({
+    userId: user._id,
+    $or: [{ storyId: storyObjectId }, { storyId: story._id }],
+  });
+
+  const progress = await StoryProgress.create({
+    userId: user._id,
+    storyId: storyObjectId,
+    currentChapter: 1,
+    currentScene: sceneId,
+    answers: [],
+    completionPercent: 0,
+    status: "in_progress",
+    lastPlayedAt: new Date(),
+  });
+
+  return {
+    progressId: progress._id.toString(),
+    storyTitle: story.title,
+    storySlug: story.slug,
+    storyKey: story.storyKey,
+    currentChapter: 1,
+    currentScene: sceneId,
+    completionPercent: 0,
+    totalChapters: definition.chapters.length,
+    chapter: firstChapter,
+  };
 }
 
 export async function startStory(storySlug: string) {
-  const result = await initStoryProgress(storySlug);
-
+  const result = await initStoryProgress(storySlug, { forceReset: true });
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/stories/${storySlug}`);
-
+  revalidatePath(`/dashboard/stories/${storySlug}/play`);
   return result;
 }
 
 export async function ensureStoryProgress(storySlug: string) {
-  return initStoryProgress(storySlug);
+  // Keep existing in-progress run; only create if none exists
+  return initStoryProgress(storySlug, { forceReset: false });
 }
 
+/** Fast path for Resume — story meta is memory-cached after first hit */
 export async function getPlayState(storySlug: string) {
-  const user = await requireCurrentUser();
-  await ensureSeed();
-
-  const story = await Story.findOne({ slug: storySlug });
+  const [user] = await Promise.all([requireCurrentUser(), ensureSeed()]);
+  const story = await getStoryMetaBySlug(storySlug);
   if (!story) return null;
+
+  const storyObjectId = new mongoose.Types.ObjectId(story._id);
 
   const progress = await StoryProgress.findOne({
     userId: user._id,
-    storyId: story._id,
+    storyId: storyObjectId,
     status: "in_progress",
-  }).lean();
+  })
+    .select("currentChapter currentScene completionPercent answers")
+    .lean();
 
   if (!progress) return null;
 
@@ -194,13 +268,21 @@ export async function getPlayState(storySlug: string) {
   const chapter = getChapter(definition.chapters, progress.currentChapter);
   if (!chapter) return null;
 
+  const safeScene = resolveSceneId(chapter, progress.currentScene);
+  if (safeScene !== progress.currentScene) {
+    await StoryProgress.updateOne(
+      { _id: progress._id },
+      { $set: { currentScene: safeScene } }
+    );
+  }
+
   return {
     storyTitle: story.title,
     storySlug: story.slug,
     storyKey: story.storyKey,
     progressId: progress._id.toString(),
     currentChapter: progress.currentChapter,
-    currentScene: progress.currentScene,
+    currentScene: safeScene,
     completionPercent: progress.completionPercent,
     totalChapters: definition.chapters.length,
     chapter,
@@ -214,15 +296,15 @@ export async function saveChapterAnswer(
   choiceLabel: string,
   score: PhqScore
 ) {
-  const user = await requireCurrentUser();
-  await ensureSeed();
-
-  const story = await Story.findOne({ slug: storySlug });
+  const [user] = await Promise.all([requireCurrentUser(), ensureSeed()]);
+  const story = await getStoryMetaBySlug(storySlug);
   if (!story) throw new Error("Story not found");
+
+  const storyObjectId = new mongoose.Types.ObjectId(story._id);
 
   const progress = await StoryProgress.findOne({
     userId: user._id,
-    storyId: story._id,
+    storyId: storyObjectId,
     status: "in_progress",
   });
   if (!progress) throw new Error("No active progress");
@@ -233,7 +315,9 @@ export async function saveChapterAnswer(
   const definition = getStoryByKey(story.storyKey);
   if (!definition) throw new Error("Story content not found");
 
-  const filteredAnswers = progress.answers.filter((a: IProgressAnswer) => a.questionId !== questionId);
+  const filteredAnswers = progress.answers.filter(
+    (a: IProgressAnswer) => a.questionId !== questionId
+  );
   filteredAnswers.push({
     questionId,
     questionText: question.text,
@@ -242,70 +326,64 @@ export async function saveChapterAnswer(
     answeredAt: new Date(),
   });
 
-  const nextChapter = questionId + 1;
+  const nextChapterNum = questionId + 1;
   const isLastChapter = questionId >= definition.chapters.length;
-  const nextChapterData = !isLastChapter ? getChapter(definition.chapters, nextChapter) : null;
+  const nextChapterData = !isLastChapter
+    ? getChapter(definition.chapters, nextChapterNum)
+    : null;
   const nextScene = nextChapterData ? getFirstScene(nextChapterData) : null;
 
-  progress.answers = filteredAnswers;
-  progress.currentChapter = isLastChapter ? questionId : nextChapter;
-  progress.currentScene = isLastChapter ? "choice" : (nextScene?.id ?? "intro");
-  progress.completionPercent = calculateCompletionPercent(
+  const completionPercent = calculateCompletionPercent(
     questionId,
     definition.chapters.length,
     true
   );
+
+  progress.answers = filteredAnswers;
+  progress.currentChapter = isLastChapter ? questionId : nextChapterNum;
+  progress.currentScene = isLastChapter ? "choice" : (nextScene?.id ?? "intro");
+  progress.completionPercent = completionPercent;
   progress.lastPlayedAt = new Date();
   await progress.save();
 
   const showQ9Support = shouldShowQ9Support(questionId, score);
 
   if (isLastChapter) {
-    const assessmentId = await completeStory(storySlug);
-    return { completed: true, assessmentId, showQ9Support };
+    const totalScore = calculateTotalScore(filteredAnswers);
+    const severity = scoreToSeverity(totalScore);
+
+    const assessment = await Assessment.create({
+      userId: user._id,
+      storyId: storyObjectId,
+      answers: filteredAnswers,
+      totalScore,
+      severity: severity.key,
+      severityLabel: severity.label,
+      completedAt: new Date(),
+    });
+
+    progress.status = "completed";
+    progress.completionPercent = 100;
+    await progress.save();
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
+
+    return {
+      completed: true as const,
+      assessmentId: assessment._id.toString(),
+      showQ9Support,
+    };
   }
 
-  revalidatePath(`/dashboard/stories/${storySlug}/play`);
-  return { completed: false, showQ9Support, nextChapter, nextSceneId: nextScene?.id };
-}
-
-export async function completeStory(storySlug: string): Promise<string> {
-  const user = await requireCurrentUser();
-  await ensureSeed();
-
-  const story = await Story.findOne({ slug: storySlug });
-  if (!story) throw new Error("Story not found");
-
-  const progress = await StoryProgress.findOne({
-    userId: user._id,
-    storyId: story._id,
-    status: "in_progress",
-  });
-  if (!progress) throw new Error("No active progress");
-
-  const totalScore = calculateTotalScore(progress.answers);
-  const severity = scoreToSeverity(totalScore);
-
-  const assessment = await Assessment.create({
-    userId: user._id,
-    storyId: story._id,
-    answers: progress.answers,
-    totalScore,
-    severity: severity.key,
-    severityLabel: severity.label,
-    completedAt: new Date(),
-  });
-
-  progress.status = "completed";
-  progress.completionPercent = 100;
-  progress.lastPlayedAt = new Date();
-  await progress.save();
-
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/analytics");
-  revalidatePath(`/dashboard/stories/${storySlug}`);
-
-  return assessment._id.toString();
+  return {
+    completed: false as const,
+    showQ9Support,
+    nextChapter: nextChapterNum,
+    nextSceneId: nextScene?.id ?? "intro",
+    completionPercent,
+    chapter: nextChapterData as StoryChapter,
+  };
 }
 
 export async function getAssessmentResult(assessmentId: string) {
@@ -316,7 +394,7 @@ export async function getAssessmentResult(assessmentId: string) {
     _id: assessmentId,
     userId: user._id,
   })
-    .populate("storyId")
+    .populate("storyId", "title slug")
     .lean();
 
   if (!assessment) return null;

@@ -1,5 +1,6 @@
 import GoogleSignInButton from "./GoogleSignInButton";
 import BackgroundScene from "./BackgroundScene";
+import LoginError from "./LoginError";
 import styles from "./login.module.css";
 
 function HeartIcon() {
@@ -79,6 +80,7 @@ export default function LoginPage() {
           <h2 className={styles.cardTitle}>Welcome Back</h2>
           <p className={styles.cardSub}>Sign in to continue your mental health journey</p>
 
+          <LoginError />
           <GoogleSignInButton />
         </div>
       </div>

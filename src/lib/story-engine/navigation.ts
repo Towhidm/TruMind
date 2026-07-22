@@ -12,6 +12,12 @@ export function getFirstScene(chapter: StoryChapter): StoryScene | null {
   return chapter.scenes[0] ?? null;
 }
 
+/** Use saved scene if it still exists; otherwise first scene of the chapter. */
+export function resolveSceneId(chapter: StoryChapter, sceneId: string): string {
+  if (chapter.scenes.some((s) => s.id === sceneId)) return sceneId;
+  return chapter.scenes[0]?.id ?? "narration";
+}
+
 export function getNextScene(chapter: StoryChapter, currentSceneId: string): StoryScene | null {
   const index = chapter.scenes.findIndex((s) => s.id === currentSceneId);
   if (index === -1 || index >= chapter.scenes.length - 1) return null;
