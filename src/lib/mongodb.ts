@@ -9,6 +9,7 @@ if (!MONGODB_URI) {
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  userIndexesSynced?: boolean;
 }
 
 declare global {
@@ -35,5 +36,12 @@ export async function connectDB() {
   }
 
   cached.conn = await cached.promise;
+
+  if (!cached.userIndexesSynced) {
+    const { User } = await import("@/models/User");
+    await User.syncIndexes();
+    cached.userIndexesSynced = true;
+  }
+
   return cached.conn;
 }

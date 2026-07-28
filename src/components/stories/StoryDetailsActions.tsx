@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, message } from "antd";
+import { App, Button } from "antd";
 import { Play } from "lucide-react";
 import { startStory } from "@/actions/story.actions";
 import { useState } from "react";
@@ -19,6 +19,7 @@ export default function StoryDetailsActions({
   hasCompleted = false,
 }: StoryDetailsActionsProps) {
   const router = useRouter();
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
 
   if (hasInProgress) {

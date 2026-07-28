@@ -1,4 +1,5 @@
 import { cache } from "react";
+import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { User, type IUser } from "@/models/User";
@@ -10,31 +11,17 @@ export const getCurrentUser = cache(async (): Promise<IUser | null> => {
 
   await connectDB();
 
-  const googleId = session.user.id;
-  const email = session.user.email;
+  const email = session.user.email.trim().toLowerCase();
+  const userId = session.user.id;
 
-  const user = await User.findOne(
-    googleId ? { $or: [{ googleId }, { email }] } : { email }
-  ).lean();
-
-  if (user) {
-    if (googleId && user.googleId !== googleId) {
-      await User.updateOne({ _id: user._id }, { $set: { googleId } });
-      return { ...user, googleId } as IUser;
-    }
-    return user as IUser;
+  // Only query by _id when it is a real Mongo ObjectId (not an old Google UUID session)
+  if (userId && mongoose.isValidObjectId(userId)) {
+    const byId = await User.findById(userId).lean();
+    if (byId) return byId as IUser;
   }
 
-  if (!googleId) return null;
-
-  const created = await User.create({
-    name: session.user.name ?? "User",
-    email,
-    image: session.user.image ?? undefined,
-    googleId,
-  });
-
-  return created.toObject() as IUser;
+  const byEmail = await User.findOne({ email }).lean();
+  return (byEmail as IUser | null) ?? null;
 });
 
 export async function requireCurrentUser(): Promise<IUser> {

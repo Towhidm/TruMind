@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button, Card } from "antd";
 import { getSeverityExplanation } from "@/lib/phq9/scoring";
+import { shouldOfferCalmingActivity } from "@/lib/phq9/calming";
 import SeverityBadge from "./SeverityBadge";
+import CalmingOfferModal from "./CalmingOfferModal";
+import CalmingActivityModal from "./CalmingActivityModal";
 import type { PhqSeverity } from "@/lib/phq9/types";
 
 interface ResultScreenProps {
@@ -31,11 +35,26 @@ export default function ResultScreen({
   completedAt,
 }: ResultScreenProps) {
   const explanation = getSeverityExplanation(severity);
+  const needsSupport = shouldOfferCalmingActivity(severity);
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+
+  useEffect(() => {
+    if (needsSupport) {
+      setOfferOpen(true);
+    }
+  }, [needsSupport]);
+
   const date = new Date(completedAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+
+  const openActivity = () => {
+    setOfferOpen(false);
+    setActivityOpen(true);
+  };
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
@@ -63,6 +82,20 @@ export default function ResultScreen({
         </p>
       </Card>
 
+      <Card className="border-teal-100 bg-teal-50/30">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">Calming activity</p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Optional short exercises to ease stress — available anytime.
+            </p>
+          </div>
+          <Button type="primary" onClick={() => setActivityOpen(true)}>
+            Try activity
+          </Button>
+        </div>
+      </Card>
+
       <Card title="Your Responses" className="border-purple-100">
         <ul className="divide-y divide-purple-50">
           {answers.map((item) => (
@@ -86,6 +119,14 @@ export default function ResultScreen({
           </Button>
         </Link>
       </div>
+
+      <CalmingOfferModal
+        open={offerOpen}
+        onTryActivity={openActivity}
+        onSkip={() => setOfferOpen(false)}
+      />
+
+      <CalmingActivityModal open={activityOpen} onClose={() => setActivityOpen(false)} />
     </div>
   );
 }

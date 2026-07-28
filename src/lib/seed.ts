@@ -6,9 +6,24 @@ import { clearStoryMetaCache } from "@/lib/story-cache";
 const CATEGORIES = [
   { name: "Life", slug: "life", description: "Everyday life stories", order: 1 },
   { name: "University", slug: "university", description: "Campus and student life", order: 2 },
+  {
+    name: "Professional",
+    slug: "professional",
+    description: "Work and career life stories",
+    order: 3,
+  },
 ];
 
-const ACTIVE_SLUGS = ["seven-days", "campus-lights"];
+const ACTIVE_SLUGS = [
+  "seven-days",
+  "campus-lights",
+  "late-library",
+  "roommate-notes",
+  "freshman-week",
+  "desk-hours",
+  "open-floor",
+  "after-clock",
+];
 
 const STORIES = [
   {
@@ -29,6 +44,60 @@ const STORIES = [
     difficulty: "easy" as const,
     storyKey: "campus-lights",
   },
+  {
+    categorySlug: "university",
+    title: "Late Library",
+    slug: "late-library",
+    description: "Exam week at university. Long nights in the library ask how you really feel.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "late-library",
+  },
+  {
+    categorySlug: "university",
+    title: "Roommate Notes",
+    slug: "roommate-notes",
+    description: "Shared dorm life. Small notes and late talks ask how you feel inside.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "roommate-notes",
+  },
+  {
+    categorySlug: "university",
+    title: "Freshman Week",
+    slug: "freshman-week",
+    description: "Your first weeks at university. New halls and new faces ask how you feel.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "freshman-week",
+  },
+  {
+    categorySlug: "professional",
+    title: "Desk Hours",
+    slug: "desk-hours",
+    description: "Long days at your desk. Emails and deadlines ask how you really feel.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "desk-hours",
+  },
+  {
+    categorySlug: "professional",
+    title: "Open Floor",
+    slug: "open-floor",
+    description: "Open office days. Meetings and noise ask how you feel under the bright lights.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "open-floor",
+  },
+  {
+    categorySlug: "professional",
+    title: "After Clock",
+    slug: "after-clock",
+    description: "Work ends on paper. The commute and evening still ask how you feel.",
+    estimatedMinutes: 18,
+    difficulty: "easy" as const,
+    storyKey: "after-clock",
+  },
 ];
 
 declare global {
@@ -40,7 +109,7 @@ declare global {
   var __storiesSeedVersion: number | undefined;
 }
 
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 
 /** Runs once per server process (per seed version). */
 export async function seedStories() {

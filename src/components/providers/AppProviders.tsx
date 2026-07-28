@@ -2,7 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider } from "antd";
+import { App, ConfigProvider } from "antd";
 
 export default function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +16,7 @@ export default function AppProviders({ children }: { children: React.ReactNode }
             },
           }}
         >
-          {children}
+          <App>{children}</App>
         </ConfigProvider>
       </AntdRegistry>
     </SessionProvider>

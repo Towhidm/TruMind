@@ -23,6 +23,8 @@ export function shouldShowQ9Support(questionId: number, score: PhqScore): boolea
   return questionId === 9 && score > 0;
 }
 
+export { shouldOfferCalmingActivity } from "./calming";
+
 export function getSeverityExplanation(key: PhqSeverity): string {
   const explanations: Record<PhqSeverity, string> = {
     minimal: "Your responses suggest minimal symptoms right now. Keep taking care of yourself and check in with how you feel over time.",

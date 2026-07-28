@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, message, Progress, Tag } from "antd";
+import { App, Button, Progress, Tag } from "antd";
 import { CheckCircle, Clock, Play } from "lucide-react";
 import { useState } from "react";
 import { startStory } from "@/actions/story.actions";
@@ -16,6 +16,7 @@ interface StoryCardProps {
 
 export default function StoryCard({ story }: StoryCardProps) {
   const router = useRouter();
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const isInProgress = story.status === "in_progress";
   const hasCompleted = story.completedCount > 0;

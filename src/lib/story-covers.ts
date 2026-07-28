@@ -1,6 +1,7 @@
 export const CATEGORY_COVERS: Record<string, string> = {
   life: "/categories/life.svg",
   university: "/categories/university.svg",
+  professional: "/categories/professional.svg",
   adventure: "/categories/adventure.svg",
   mystery: "/categories/mystery.svg",
   fantasy: "/categories/fantasy.svg",

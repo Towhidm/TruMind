@@ -1,0 +1,282 @@
+.pickCard {
+  animation: pickIn 0.45s ease both;
+}
+
+.pickCard:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.pickCard:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.pickCard:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes pickIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* —— Breathing —— */
+.breathWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.breathOrb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #5eead4, #0d9488 70%);
+  color: #fff;
+  transition:
+    width 4s ease-in-out,
+    height 4s ease-in-out,
+    box-shadow 4s ease-in-out;
+}
+
+.breathGrow {
+  width: 170px !important;
+  height: 170px !important;
+  box-shadow: 0 0 36px 10px rgba(45, 212, 191, 0.4);
+}
+
+.breathHold {
+  width: 170px !important;
+  height: 170px !important;
+  box-shadow: 0 0 24px 6px rgba(45, 212, 191, 0.3);
+}
+
+.breathShrink {
+  width: 80px !important;
+  height: 80px !important;
+  box-shadow: 0 0 10px 0 rgba(13, 148, 136, 0.2);
+}
+
+.breathLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 0 8px;
+}
+
+.breathCount {
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* —— Grounding —— */
+.groundWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.senseRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.senseChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 64px;
+  border-radius: 14px;
+  border: 1px solid #ccfbf1;
+  background: #f0fdfa;
+  color: #99f6e4;
+  transition:
+    transform 0.35s ease,
+    background 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.senseChipActive {
+  background: linear-gradient(145deg, #14b8a6, #0d9488);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3);
+  animation: sensePop 0.45s ease;
+}
+
+.senseChipDone {
+  background: #ccfbf1;
+  color: #0f766e;
+  border-color: #99f6e4;
+}
+
+.senseNum {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.senseName {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes sensePop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: translateY(-6px) scale(1.12);
+  }
+  100% {
+    transform: translateY(-4px) scale(1.08);
+  }
+}
+
+.groundOrb {
+  width: 72px;
+  height: 72px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #99f6e4, #14b8a6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  animation: groundFloat 2.4s ease-in-out infinite;
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.25);
+}
+
+@keyframes groundFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* —— Stretch (static icons) —— */
+.stretchIconWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.stretchIconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 28px;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+}
+
+.stretchIconLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.stretchIconRow {
+  display: flex;
+  gap: 8px;
+}
+
+.stretchMini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+}
+
+.stretchMiniActive {
+  background: #0d9488;
+  border-color: #0d9488;
+  color: #fff;
+}
+
+.stretchMiniDone {
+  background: #ccfbf1;
+  border-color: #99f6e4;
+  color: #0f766e;
+}
+
+.stepText {
+  animation: stepFade 0.35s ease both;
+}
+
+@keyframes stepFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.donePop {
+  animation: donePop 0.5s ease both;
+}
+
+@keyframes donePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickCard,
+  .breathOrb,
+  .senseChip,
+  .senseChipActive,
+  .groundOrb,
+  .stepText,
+  .donePop {
+    animation: none !important;
+    transition: none !important;
+  }
+}

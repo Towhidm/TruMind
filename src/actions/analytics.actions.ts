@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireCurrentUser } from "@/lib/get-current-user";
 import { getSeverityExplanation } from "@/lib/phq9/scoring";
 import { Assessment } from "@/models/Assessment";
+import { MoodCheckIn, type MoodLevel } from "@/models/MoodCheckIn";
 import type { PhqSeverity } from "@/lib/phq9/types";
 
 export interface AnalyticsData {
@@ -30,22 +31,32 @@ export interface AnalyticsData {
     completedAt: string;
     answers: { questionId: number; score: number; choiceLabel: string }[];
   }[];
+  moodTrend: { dayKey: string; mood: MoodLevel }[];
+  averageMood: number | null;
+  moodCheckInCount: number;
 }
 
 export async function getAnalytics(): Promise<AnalyticsData> {
   const user = await requireCurrentUser();
   await connectDB();
 
-  const assessments = await Assessment.find({ userId: user._id })
-    .populate({
-      path: "storyId",
-      select: "title slug categoryId",
-      populate: { path: "categoryId", select: "name" },
-    })
-    .select("storyId totalScore severity severityLabel completedAt answers")
-    .sort({ completedAt: -1 })
-    .limit(50)
-    .lean();
+  const [assessments, moodEntries] = await Promise.all([
+    Assessment.find({ userId: user._id })
+      .populate({
+        path: "storyId",
+        select: "title slug categoryId",
+        populate: { path: "categoryId", select: "name" },
+      })
+      .select("storyId totalScore severity severityLabel completedAt answers")
+      .sort({ completedAt: -1 })
+      .limit(50)
+      .lean(),
+    MoodCheckIn.find({ userId: user._id })
+      .select("mood dayKey")
+      .sort({ dayKey: -1 })
+      .limit(14)
+      .lean(),
+  ]);
 
   const uniqueStoryIds = new Set(
     assessments.map((a) => {
@@ -111,6 +122,18 @@ export async function getAnalytics(): Promise<AnalyticsData> {
     };
   });
 
+  const moodTrend = [...moodEntries]
+    .reverse()
+    .map((e) => ({ dayKey: e.dayKey, mood: e.mood as MoodLevel }));
+
+  const moodCheckInCount = moodEntries.length;
+  const averageMood =
+    moodCheckInCount > 0
+      ? Math.round(
+          (moodEntries.reduce((sum, e) => sum + e.mood, 0) / moodCheckInCount) * 10
+        ) / 10
+      : null;
+
   return {
     totalAssessments: assessments.length,
     completedStories: uniqueStoryIds.size,
@@ -119,6 +142,9 @@ export async function getAnalytics(): Promise<AnalyticsData> {
     scoreTrend,
     categoryBreakdown,
     assessmentHistory,
+    moodTrend,
+    averageMood,
+    moodCheckInCount,
   };
 }
 

@@ -1,63 +1,60 @@
 import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { authConfig } from "@/lib/auth.config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  callbacks: {
-    ...authConfig.callbacks,
-    async jwt({ token, account }) {
-      if (account?.provider === "google" && account.providerAccountId) {
-        token.googleId = account.providerAccountId;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        const googleId = (token.googleId as string | undefined) ?? token.sub;
-        if (googleId) {
-          session.user.id = googleId;
-        }
-      }
-      return session;
-    },
-    async signIn({ user, account }) {
-      if (account?.provider !== "google" || !user.email) {
-        return false;
-      }
+  providers: [
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email =
+          typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
+        const password =
+          typeof credentials?.password === "string" ? credentials.password : "";
 
-      try {
+        if (!email || !password) return null;
+
         const { connectDB } = await import("@/lib/mongodb");
         const { User } = await import("@/models/User");
 
         await connectDB();
+        const user = await User.findOne({ email }).lean();
+        if (!user?.passwordHash) return null;
 
-        const googleId = account.providerAccountId;
-        const email = user.email;
+        const valid = await bcrypt.compare(password, user.passwordHash);
+        if (!valid) return null;
 
-        // Prefer googleId, then email — avoid duplicate-email upsert crashes
-        const existing =
-          (await User.findOne({ googleId })) ?? (await User.findOne({ email }));
-
-        if (existing) {
-          existing.name = user.name ?? existing.name;
-          existing.email = email;
-          existing.image = user.image ?? existing.image;
-          existing.googleId = googleId;
-          await existing.save();
-        } else {
-          await User.create({
-            name: user.name ?? "User",
-            email,
-            image: user.image,
-            googleId,
-          });
-        }
-
-        return true;
-      } catch (error) {
-        console.error("[auth] signIn failed:", error);
-        return false;
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.sub = user.id;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
     },
   },
 });

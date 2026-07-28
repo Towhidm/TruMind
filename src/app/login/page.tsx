@@ -1,5 +1,5 @@
 import LoginPage from "@/components/auth/LoginPage";
 
-export default function HomePage() {
+export default function LoginRoutePage() {
   return <LoginPage />;
 }

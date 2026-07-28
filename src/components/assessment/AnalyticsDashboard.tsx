@@ -6,10 +6,11 @@ import {
   BarChart3,
   BookOpen,
   Calendar,
-  TrendingDown,
-  TrendingUp,
+  Smile,
 } from "lucide-react";
 import type { AnalyticsData } from "@/actions/analytics.actions";
+import { MOOD_OPTIONS } from "@/lib/mood";
+import type { MoodLevel } from "@/models/MoodCheckIn";
 
 interface AnalyticsDashboardProps {
   data: AnalyticsData;
@@ -36,6 +37,14 @@ const CATEGORY_COLORS = [
 
 function getSeverityStyle(label: string) {
   return SEVERITY_STYLES[label] ?? SEVERITY_STYLES.Minimal;
+}
+
+function moodEmoji(mood: MoodLevel) {
+  return MOOD_OPTIONS.find((o) => o.value === mood)?.emoji ?? "😐";
+}
+
+function moodLabel(mood: MoodLevel) {
+  return MOOD_OPTIONS.find((o) => o.value === mood)?.label ?? "Okay";
 }
 
 function StatCard({
@@ -74,22 +83,18 @@ function StatCard({
 export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
   const maxTrendScore = Math.max(...data.scoreTrend.map((t) => t.score), 1);
   const maxCategoryCount = Math.max(...data.categoryBreakdown.map((c) => c.count), 1);
+  const hasAssessments = data.totalAssessments > 0;
+  const hasMood = data.moodTrend.length > 0;
 
-  const trendDirection =
-    data.scoreTrend.length >= 2
-      ? data.scoreTrend[data.scoreTrend.length - 1].score -
-        data.scoreTrend[data.scoreTrend.length - 2].score
-      : 0;
-
-  if (data.totalAssessments === 0) {
+  if (!hasAssessments && !hasMood) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-purple-100 bg-white py-16 text-center">
         <div className="mb-4 rounded-full bg-purple-50 p-5">
           <BookOpen className="h-10 w-10 text-purple-400" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-700">No assessments yet</h3>
+        <h3 className="text-lg font-semibold text-slate-700">No data yet</h3>
         <p className="mt-2 max-w-sm text-sm text-slate-500">
-          Complete a story on TruMind to see your colorful journey map here.
+          Complete a daily mood check-in or finish a story to see your journey here.
         </p>
       </div>
     );
@@ -113,23 +118,44 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         />
         <StatCard
           title="Average Score"
-          value={data.averageScore}
-          suffix="/ 27"
+          value={hasAssessments ? data.averageScore : "—"}
+          suffix={hasAssessments ? "/ 27" : undefined}
           icon={Activity}
           gradient="bg-gradient-to-br from-emerald-600 to-teal-500"
         />
         <StatCard
-          title="Latest Trend"
-          value={trendDirection === 0 ? "Stable" : trendDirection > 0 ? "Higher" : "Lower"}
-          icon={trendDirection > 0 ? TrendingUp : TrendingDown}
-          gradient={
-            trendDirection > 0
-              ? "bg-gradient-to-br from-orange-500 to-amber-500"
-              : "bg-gradient-to-br from-indigo-600 to-violet-500"
-          }
+          title="Avg Daily Mood"
+          value={data.averageMood ?? "—"}
+          suffix={data.averageMood != null ? "/ 5" : undefined}
+          icon={Smile}
+          gradient="bg-gradient-to-br from-fuchsia-600 to-pink-500"
         />
       </div>
 
+      {hasMood && (
+        <div className="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-slate-800">
+            <Smile className="h-5 w-5 text-purple-500" />
+            Daily Mood (last {data.moodTrend.length} days)
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {data.moodTrend.map((item) => (
+              <div
+                key={item.dayKey}
+                className="flex min-w-[72px] flex-col items-center rounded-xl border border-purple-50 bg-purple-50/40 px-3 py-3"
+                title={moodLabel(item.mood)}
+              >
+                <span className="text-2xl">{moodEmoji(item.mood)}</span>
+                <span className="mt-1 text-xs font-semibold text-purple-700">{item.mood}/5</span>
+                <span className="mt-0.5 text-[10px] text-slate-400">{item.dayKey.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasAssessments && (
+      <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent results cards */}
         {data.recentResults.length > 0 && (
@@ -287,6 +313,8 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             })}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
